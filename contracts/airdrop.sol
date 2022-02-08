@@ -6,6 +6,7 @@ import '@openzeppelin/contracts/token/ERC721/IERC721.sol';
 contract Airdrop {
     uint public tokenId;
     mapping(uint => address) public nftToOwner;
+    mapping(address => bool) public eligibleOwner;
 
     function airdropNFT(address[] memory _recipients) external {
         for(uint i = 0; i < _recipients.length; i++) {
@@ -14,7 +15,16 @@ contract Airdrop {
         }
     }
 
-    // whitelist owners
+    // insert condition for airdrop eligibility in this function
+    function whitelistRecipients(address[] memory _recipients) external {
+        for(uint i = 0; i < _recipients.length; i++) {
+            eligibleOwner[_recipients[i]] = true;
+        }
+    }
 
-    // claim
+    function claim() external {
+        require(eligibleOwner[msg.sender], "Not eligible for airdrop");
+        eligibleOwner[msg.sender] = false;
+        IERC721(nftToOwner[tokenId]).transferFrom(nftToOwner[tokenId], msg.sender, tokenId);
+    }
 }
